@@ -1,0 +1,275 @@
+SQL> 
+SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD'
+  2  /
+
+Session altered.
+
+SQL> --Requête 1 du devoir
+SQL> SELECT DISTINCT noArticle
+  2  FROM lignecommande
+  3  /
+
+ NOARTICLE                                                                      
+----------                                                                      
+        70                                                                      
+        50                                                                      
+        40                                                                      
+        20                                                                      
+        95                                                                      
+        10                                                                      
+        90                                                                      
+
+7 rows selected.
+
+SQL> 
+SQL> --Requête 2 du devoir
+SQL> SELECT noArticle, description
+  2  FROM Article
+  3  WHERE (noArticle > 45) AND ((description LIKE 'Po%') OR (description LIKE '%a%'))
+  4  /
+
+ NOARTICLE DESCRIPTION                                                          
+---------- ------------------------------------------------------------         
+        60 Erable argente                                                       
+        80 Poirier                                                              
+        81 Catalpa                                                              
+        90 Pommier                                                              
+
+SQL> 
+SQL> --Requête 3 du devoir
+SQL> SELECT noArticle, description
+  2  FROM Articles
+  3  WHERE noArticle IN (10,40,80)
+  4  /
+
+ NOARTICLE DESCRIPTION                                                          
+---------- ------------------------------------------------------------         
+        10 Cedre en boule                                                       
+        40 Epinette bleue                                                       
+        80 Poirier                                                              
+
+SQL> 
+SQL> --Requête 4 du devoir
+SQL> SELECT nomClient
+  2  FROM Client NATURAL JOIN Commande
+  3  WHERE Commande.noCommande = 7
+  4  /
+
+NOMCLIENT                                                                       
+------------------------------------------------------------                    
+Jean Leconte                                                                    
+
+SQL> 
+SQL> --Requête 5 du devoir
+SQL> SELECT DISTINCT nomClient
+  2  FROM Client NATURAL JOIN Commande NATURAL JOIN DetailLivraison NATURAL JOIN Livraison
+  3  WHERE dateLivraison = '2000-06-04' OR dateLivraison = '2000-07-09'
+  4  /
+
+NOMCLIENT                                                                       
+------------------------------------------------------------                    
+Dollard Tremblay                                                                
+Luc Sansom                                                                      
+
+SQL> 
+SQL> --Requête 6 du devoir
+SQL> (SELECT dateCommande AS dateÉvènem
+  2   FROM commande)
+  3   UNION
+  4  (SELECT dateLivraison AS dateÉvènem
+  5   FROM Livraison)
+  6  /
+
+DATEÉVÈNEM                                                                      
+----------                                                                      
+2000-06-01                                                                      
+2000-06-02                                                                      
+2000-06-03                                                                      
+2000-06-04                                                                      
+2000-06-05                                                                      
+2000-07-05                                                                      
+2000-07-07                                                                      
+2000-07-08                                                                      
+2000-07-09                                                                      
+2000-07-15                                                                      
+
+10 rows selected.
+
+SQL> 
+SQL> --Requête 7 du devoir
+SQL> SELECT noArticle,
+  2    CASE
+  3  	 WHEN SUM(quantite) IS NULL THEN 0
+  4  	 ELSE SUM(quantite)
+  5    END AS "QUANTITE COMMANDEE"
+  6  FROM Article NATURAL LEFT OUTER JOIN LigneCommande
+  7  GROUP BY noArticle
+  8  /
+
+ NOARTICLE QUANTITE COMMANDEE                                                   
+---------- ------------------                                                   
+        70                  8                                                   
+        60                  0                                                   
+        50                  2                                                   
+        40                  4                                                   
+        20                  9                                                   
+        95                  3                                                   
+        81                  0                                                   
+        10                 20                                                   
+        90                  1                                                   
+        80                  0                                                   
+
+10 rows selected.
+
+SQL> 
+SQL> --Requête 8 du devoir
+SQL> SELECT noArticle,
+  2    CASE
+  3  	 WHEN SUM(quantite) IS NULL THEN 0
+  4  	 ELSE SUM(quantite)
+  5    END AS "QUANTITE COMMANDEE"
+  6  FROM Article NATURAL LEFT OUTER JOIN LigneCommande
+  7  GROUP BY noArticle
+  8  HAVING noArticle < 70 AND (SUM(quantite) <5 OR SUM(quantite) IS NULL)
+  9  /
+
+ NOARTICLE QUANTITE COMMANDEE                                                   
+---------- ------------------                                                   
+        60                  0                                                   
+        50                  2                                                   
+        40                  4                                                   
+
+SQL> 
+SQL> --Requête 9 du devoir
+SQL> SELECT noLivraison, noCommande, noArticle, dateCommande, quantite,
+  2  	    dateLivraison, quantiteLivree, (dateLivraison - dateCommande) AS
+  3  	    Nombre_jours_ecoules
+  4  FROM Commande NATURAL JOIN LigneCommande NATURAL JOIN DetailLivraison
+  5  	  NATURAL JOIN Livraison
+  6  WHERE (dateLivraison - dateCommande) > 2 AND (SYSDATE - dateCommande) > 100
+  7  /
+
+NOLIVRAISON NOCOMMANDE  NOARTICLE DATECOMMAN   QUANTITE DATELIVRAI              
+----------- ---------- ---------- ---------- ---------- ----------              
+QUANTITELIVREE NOMBRE_JOURS_ECOULES                                             
+-------------- --------------------                                             
+        103          1         90 2000-06-01          1 2000-06-05              
+             1                    4                                             
+                                                                                
+        101          1         10 2000-06-01         10 2000-06-04              
+             3                    3                                             
+                                                                                
+
+SQL> 
+SQL> --Requête 10 du devoir
+SQL> SELECT *
+  2  FROM DetailLivraison
+  3  ORDER BY noCommande DESC, quantiteLivree ASC
+  4  /
+
+NOLIVRAISON NOCOMMANDE  NOARTICLE QUANTITELIVREE                                
+----------- ---------- ---------- --------------                                
+        105          5         70              2                                
+        104          4         40              1                                
+        100          3         20              1                                
+        102          2         95              1                                
+        102          2         40              2                                
+        103          1         90              1                                
+        101          1         10              3                                
+        100          1         70              5                                
+        100          1         10              7                                
+
+9 rows selected.
+
+SQL> 
+SQL> --Requête 11 du devoir
+SQL> SELECT *
+  2  FROM
+  3  ((SELECT COUNT(*) NombrePopulaires
+  4  FROM (
+  5  	 SELECT noArticle
+  6  	 FROM LigneCommande
+  7  	 GROUP BY noArticle
+  8  	 HAVING SUM(quantite) > 5
+  9  ))
+ 10  CROSS JOIN
+ 11  (SELECT COUNT(*) AS NombreImpopulaires
+ 12   FROM
+ 13  	 (SELECT noArticle
+ 14  	  FROM Article NATURAL LEFT OUTER JOIN LigneCommande
+ 15  	  GROUP BY noArticle
+ 16  	  HAVING SUM(quantite) < 2 OR SUM(quantite) IS NULL
+ 17  	 )
+ 18  ))
+ 19  /
+
+NOMBREPOPULAIRES NOMBREIMPOPULAIRES                                             
+---------------- ------------------                                             
+               3                  4                                             
+
+SQL> 
+SQL> --Requête 12 du devoir
+SQL> SELECT noArticle
+  2  FROM Article NATURAL LEFT OUTER JOIN LigneCommande
+  3  GROUP BY noArticle
+  4  HAVING SUM(quantite) IS NULL
+  5  /
+
+ NOARTICLE                                                                      
+----------                                                                      
+        60                                                                      
+        81                                                                      
+        80                                                                      
+
+SQL> 
+SQL> --Requête 13 du devoir
+SQL> SELECT MAX(noLivraison) noLivraison
+  2  FROM Livraison
+  3  /
+
+NOLIVRAISON                                                                     
+-----------                                                                     
+        105                                                                     
+
+SQL> 
+SQL> --Requête 14 du devoir
+SQL> SELECT noClient, noArticle, SUM(quantite*prixUnitaire) AS "Montant Total Commande"
+  2  FROM Commande NATURAL JOIN LigneCommande NATURAL JOIN Article
+  3  GROUP BY noClient, noArticle
+  4  HAVING SUM(quantite*prixUnitaire) > 50
+  5  /
+
+  NOCLIENT  NOARTICLE Montant Total Commande                                    
+---------- ---------- ----------------------                                    
+        30         20                  64.95                                    
+        20         10                  54.95                                    
+        30         10                  54.95                                    
+        10         10                  109.9                                    
+        20         40                  77.97                                    
+        10         70                  54.95                                    
+
+6 rows selected.
+
+SQL> 
+SQL> --Requête 15 du devoir
+SQL> SELECT DISTINCT noLivraison
+  2  FROM DetailLivraison
+  3  WHERE NOT EXISTS
+  4    ((SELECT noCommande
+  5  	FROM Commande
+  6  	WHERE noClient = 10 AND (dateCommande BETWEEN '2000-06-01' AND '2000-06-30')
+  7    )
+  8    MINUS
+  9  	(SELECT noCommande
+ 10  	 FROM DetailLivraison D
+ 11  	 WHERE D.noLivraison = DetailLivraison.noLivraison
+ 12  	)
+ 13    )
+ 14  /
+
+NOLIVRAISON                                                                     
+-----------                                                                     
+        100                                                                     
+
+SQL> 
+SQL> SET ECHO OFF
